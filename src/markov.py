@@ -16,11 +16,15 @@ class MarkovChain:
 
     #Adds a new word to the transitionMatrix and decreases the probability of the other values
     def addWord(self, word, next):
+        back = 0 #back window of sliding window approach used to keep the results in order to ensure faster fetch times
         for i,values in enumerate(self.transitionMatrix[word]):
             if values[1] == next:
-                self.transitionMatrix[word][i][0] += 1 
+                self.transitionMatrix[word][i][0] += 1
+                self.transitionMatrix[word][back],self.transitionMatrix[word][i] = self.transitionMatrix[word][i],self.transitionMatrix[word][back] #Swap front and back values
                 return
-        self.transitionMatrix[word].append([1,next])
+            if self.transitionMatrix[word][i][0] < self.transitionMatrix[word][back][0]:
+                back = i #Move window forward
+        self.transitionMatrix[word].append([1,next]) #If not already in array add it to end with default value of 1 
         
 
 
@@ -51,12 +55,12 @@ class MarkovChain:
 
     def trainFromCorpus(self):
         for file in os.listdir("..//corpus"):
-            f = open("..//corpus//"+file)
+            f = open("..//corpus//"+file,encoding='utf-8')
             self.train(f.read())
     
     def trainFromCorpusSpecific(self,filename):
         try:
-            f = open("..//corpus//"+filename)
+            f = open("..//corpus//"+filename,encoding='utf-8')
             self.train(f.read())
         except Exception as e:
             print(f"Error {e}")
@@ -75,26 +79,39 @@ class MarkovChain:
     def predictLen(self,word,Maxlength):
         text = word
         for i in range(Maxlength):
-            word = self.randomPredict(word)
+            word = self.predictBest(word)
             if word == None:
                 break
             text+= " " + word
         return text 
 
-                
+    def displayMatrix(self):
+        for key in self.transitionMatrix:
+            print(f"Key {key}: Value:{self.transitionMatrix[key]}")     
 
 
+    def checkorder(self):
+        for key in self.transitionMatrix:
+            prev = 1000000000
+            for subarray in self.transitionMatrix[key]:
+                if subarray[0] > prev:
+                    print("Not in order")
+                    print(f"Key {key}: Value:{self.transitionMatrix[key]}")   
+                prev = subarray[0]
 
 
 
 
 def test():
     M = MarkovChain()
-    M.train("The Cat. didn't Sat On The Mat")
+    #M.train("The Mat. didn't Sat On The Mat The Cat The Cat The Cat")
     M.trainFromCorpus()
+    #M.trainFromCorpusSpecific("bingusdict.txt")
     #print(M.getMatrix())
-    print(M.predictLen("the",100))
-    
+    #M.displayMatrix()
+    M.checkorder()
+    #print(M.predictLen("noah",1000))
+     
 
 
 
