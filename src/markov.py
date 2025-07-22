@@ -62,13 +62,16 @@ class MarkovChain(ABC):
             text+= " " + word
         return text
 
- 
+    @abstractmethod
+    def addWord(self, *args, **kwargs):
+        pass
+
     @abstractmethod
     def randomPredict(self,word,topN):
         pass
 
     @abstractmethod
-    def train(self,text):
+    def train(self,*args, **kwargs):
         pass     
 
     
@@ -118,6 +121,15 @@ class N1MarkovChain(MarkovChain):
         return self.randomPredict(word.lower(),0)
 
 
+class N2MarkovChain(MarkovChain):
+    def addWord(self,word,next1,next2):
+        pass
+
+    def train(self,text):
+        pass
+
+
+
 
 
   
@@ -129,14 +141,14 @@ class N1MarkovChain(MarkovChain):
 
 
 def test():
-    M = N1MarkovChain()
+    M = N2MarkovChain()
     M.train("the cat sat on the mat ")
     #M.trainFromCorpus()
     #M.trainFromCorpusSpecific("bingusdict.txt")
     #print(M.getMatrix())
-    M.displayMatrix()
-    M.checkorder()
-    print(M.predictLen("The",1000,2))
+    #M.displayMatrix()
+    #M.checkorder()
+    #print(M.predictLen("The",1000,2))
      
 
 
