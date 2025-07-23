@@ -62,9 +62,19 @@ class MarkovChain(ABC):
             text+= " " + word
         return text
 
-    @abstractmethod
-    def addWord(self, *args, **kwargs):
-        pass
+    #Adds a new word to the transitionMatrix and decreases the probability of the other values
+    #Can also accept multiple words for parameter word for higher order markov chains
+    def addWord(self, word, next):
+        back = 0 #back window of sliding window approach used to keep the results in order to ensure faster fetch times
+        for i,values in enumerate(self.transitionMatrix[word]):
+            if self.transitionMatrix[word][i][0] < self.transitionMatrix[word][back][0]:
+                back = i #Move window forward
+            if values[1] == next:
+                self.transitionMatrix[word][i][0] += 1
+                self.transitionMatrix[word][back],self.transitionMatrix[word][i] = self.transitionMatrix[word][i],self.transitionMatrix[word][back] #Swap front and back values
+                return
+            
+        self.transitionMatrix[word].append([1,next]) #If not already in array add it to end with default value of 1 
 
     @abstractmethod
     def randomPredict(self,word,topN):
@@ -84,20 +94,6 @@ class MarkovChain(ABC):
 
 
 class N1MarkovChain(MarkovChain):
-    #Adds a new word to the transitionMatrix and decreases the probability of the other values
-    def addWord(self, word, next):
-        back = 0 #back window of sliding window approach used to keep the results in order to ensure faster fetch times
-        for i,values in enumerate(self.transitionMatrix[word]):
-            if self.transitionMatrix[word][i][0] < self.transitionMatrix[word][back][0]:
-                back = i #Move window forward
-            if values[1] == next:
-                self.transitionMatrix[word][i][0] += 1
-                self.transitionMatrix[word][back],self.transitionMatrix[word][i] = self.transitionMatrix[word][i],self.transitionMatrix[word][back] #Swap front and back values
-                return
-            
-        self.transitionMatrix[word].append([1,next]) #If not already in array add it to end with default value of 1 
-        
-
     def train(self,text):
         tokens = self.tokenize(text)
         for sentence in tokens:    
@@ -113,24 +109,60 @@ class N1MarkovChain(MarkovChain):
     
 
 
-    def predict(self,word,topN):
+    def predict(self,word,topN = 1):
         if not self.transitionMatrix[word.lower()]:
             return None
         if topN == 1:
             return self.transitionMatrix[word.lower()][0][1] #transitionMatrix is kept in order so the first item is the highest probability
         return self.randomPredict(word.lower(),0)
+    
+    def predictLen(self,word,Maxlength,topN): #topN = 0 to randomly choose from all, topN = 1 to always choose mostlikely, topN > 1: specify how many are in the pool to randomly choose 
+        text = word
+        for i in range(Maxlength):
+            word = self.predict(word,topN)
+            if word == None:
+                break
+            text+= " " + word
+        return text
 
 
 class N2MarkovChain(MarkovChain):
-    def addWord(self,word,next1,next2):
-        pass
-
     def train(self,text):
-        pass
+        tokens = self.tokenize(text)
+        for sentence in tokens:
+            for i in range(len(sentence)-2):
+                self.addWord((sentence[i],sentence[i+1]),sentence[i+2])
 
 
+    def randomPredict(self, lastlastword,lastword, topN):
+        if topN == 0:
+            return (random.choice(self.transitionMatrix[(lastlastword,lastword)])[1])
+        else:
+            return (random.choice(self.transitionMatrix[(lastlastword,lastword)][0:topN])[1])
+    
 
 
+    def predict(self,lastlastword,lastword,topN = 1):
+        if not self.transitionMatrix[(lastlastword.lower(),lastword.lower())]:
+            return None
+        if topN == 1:
+            return self.transitionMatrix[(lastlastword.lower(),lastword.lower())][0][1] #transitionMatrix is kept in order so the first item is the highest probability
+        return self.randomPredict(lastlastword.lower(),lastword.lower(),0)
+
+    
+    def predictLen(self,word1,word2,Maxlength,topN): #topN = 0 to randomly choose from all, topN = 1 to always choose mostlikely, topN > 1: specify how many are in the pool to randomly choose 
+        text = word1 + " " + word2.lower()
+        for i in range(Maxlength):
+            temp = word2
+            word2 = self.predict(word1,word2,topN)
+            word1 = temp
+            if word2 == None:
+                break
+            text+= " " + word2
+        return text
+
+
+    
 
   
 
@@ -143,14 +175,13 @@ class N2MarkovChain(MarkovChain):
 def test():
     M = N2MarkovChain()
     M.train("the cat sat on the mat ")
-    #M.trainFromCorpus()
+    M.trainFromCorpus()
     #M.trainFromCorpusSpecific("bingusdict.txt")
     #print(M.getMatrix())
     #M.displayMatrix()
     #M.checkorder()
-    #print(M.predictLen("The",1000,2))
+    print(M.predictLen("The","Cat",1000,2))
      
-
 
 
 if __name__ == "__main__":
