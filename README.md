@@ -13,8 +13,8 @@ Theres two types of corpus that the project is trained on.
 Some basic texts I used to develop, not very extensive
 
 #### Dictionary
-included 20k English words
-These are some of the most commonly used words accrossed billions of pieces of text
-Taken from this [repository](https://github.com/first20hours/google-10000-english)
-Which itself is the top 20,000 words from [Google's Massive Corpus](https://books.google.com/ngrams/info)
-The words arent specific to different types of English however,
+included 170k British English Words
+These are the majority of English words + Names, Places etc
+Taken from this [repository](https://sourceforge.net/projects/wordlist/files/speller/2020.12.07/)
+I've chosen the large dataset which is comprised of both ise and ize spellings of english words because in British English both are techncially correct
+
