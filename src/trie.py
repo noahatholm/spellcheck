@@ -1,13 +1,15 @@
 import time
 from cleaning import normaliseFile
 import sys
+from time import sleep
 
 
 
 class TrieNode:
     def __init__(self, char, endOfWord = False):
         self.char = char.lower()
-        self.children = [None] * TOTALCHARS
+        self.children = {[None] * TOTALCHARS }#I decided to build the nodes like this as an array as I heard that a hash maps were not faster than arrays when theres less than 100ish items. 
+        #But i failed to consider the incredible memory cost this would take up, Will change in the future
         self.endOfWord = endOfWord
 
     def __repr__(self):
@@ -117,7 +119,7 @@ class Trie:
         for node in self.head: #Iterate through the head's children and runs a FuzzySearch on each one thats not None
             if node: #check if node is not none
                 currentRow = leveinsteinDistance(intialRow,node.getValue(), word)
-                if min(currentRow) <= maxDistance:
+                if min(currentRow) <= maxDistance: #Prunes branches if cost is higher than max allowed
                     recursiveFuzzySearch(node,word,maxDistance,currentRow,node.getValue(),results)
         return results
 
@@ -158,7 +160,7 @@ def recursiveFuzzySearch(node: TrieNode, word: str, maxDistance: int, prevRow: l
         if child:
             char = child.getValue()
             currRow = leveinsteinDistance(prevRow, char, word)
-            if min(currRow) <= maxDistance:
+            if min(currRow) <= maxDistance: #Prunes branches if cost is higher than max allowed
                 recursiveFuzzySearch(child, word, maxDistance, currRow, prefix + char, results)
 
 
@@ -182,21 +184,22 @@ def test():
     tree = Trie()
 
     
-    tree.addFromFile("en_GB-large.txt")
+    #tree.addFromFile("en_GB-large.txt")
 
     #Test Fuzzy Search
-    # tree.addWord("cab")
-    # tree.addWord("cat")
-    # tree.addWord("cart")
-    # tree.addWord("cut")
-    # tree.addWord("dog")
+    tree.addWord("cab")
+    tree.addWord("cat")
+    tree.addWord("cart")
+    tree.addWord("cut")
+    tree.addWord("dog")
     #tree.addWord("c")
-    print(tree.findWord("noah"))
+    #print(tree.findWord("noah"))
     #print(tree.findWord("zippier"))
 
-    #print(tree.displayTrie())
+    print(tree.displayTrie())
 
-    print(tree.fuzzySearch("noha",1))
+    #print(tree.fuzzySearch("noha",1))
+
 
 
 

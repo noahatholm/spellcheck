@@ -29,9 +29,12 @@ class MarkovChain(ABC):
         return tokens #Returns an list of list full of tokens
 
     def trainFromCorpus(self):
-        for file in os.listdir("..//corpus"):
-            f = open("..//corpus//"+file,encoding='utf-8')
-            self.train(f.read())
+        try:
+            for file in os.listdir("..//corpus//text//"):
+                f = open("..//corpus//text//"+file,encoding='utf-8')
+                self.train(f.read())
+        except Exception as e:
+            print(e)
     
     def trainFromCorpusSpecific(self,filename):
         try:
@@ -75,6 +78,14 @@ class MarkovChain(ABC):
                 return
             
         self.transitionMatrix[word].append([1,next]) #If not already in array add it to end with default value of 1 
+
+    def getFrequency(self,word,limit = 1000): #Estimates frequency of words
+        words = self.transitionMatrix[word]
+        sum = 0
+        for i in range(min(len(words),limit)):
+            sum += words[i][0]
+        return sum
+
 
     @abstractmethod
     def randomPredict(self,word,topN):
@@ -164,7 +175,6 @@ class N2MarkovChain(MarkovChain):
 
     
 
-  
 
 
 
@@ -173,14 +183,15 @@ class N2MarkovChain(MarkovChain):
 
 
 def test():
-    M = N2MarkovChain()
+    M = N1MarkovChain()
     M.train("the cat sat on the mat ")
     M.trainFromCorpus()
     #M.trainFromCorpusSpecific("bingusdict.txt")
     #print(M.getMatrix())
     #M.displayMatrix()
     #M.checkorder()
-    print(M.predictLen("The","Cat",1000,2))
+    print(M.predictLen("The",1000,2))
+    print(M.getFrequency("cat"))
      
 
 
