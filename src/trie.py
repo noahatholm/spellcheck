@@ -1,31 +1,28 @@
-import time
 from cleaning import normaliseFile
-import sys
-from time import sleep
+
 
 
 
 class TrieNode:
     def __init__(self, char, endOfWord = False):
         self.char = char.lower()
-        self.children = {[None] * TOTALCHARS }#I decided to build the nodes like this as an array as I heard that a hash maps were not faster than arrays when theres less than 100ish items. 
-        #But i failed to consider the incredible memory cost this would take up, Will change in the future
+        self.children = {} #Changed from arrays to dictionaries to improve memory complexity
         self.endOfWord = endOfWord
 
     def __repr__(self):
         return f"({self.char},{self.endOfWord})"
     
     def addChild(self,char, endOfWord = False):
-        if self.children[pos(char)] == None:
+        if char not in self.children:
             Node = TrieNode(char,endOfWord)
-            self.children[pos(char)] = Node
+            self.children.update({char: Node})
             return Node
         if endOfWord:
-            self.children[pos(char)].setEnd(endOfWord)
-        return self.children[pos(char)]
+            self.children[char].setEnd(endOfWord)
+        return self.children[char]
     
     def getChild(self,char):
-        return self.children[pos(char)]
+        return self.children[char]
     
     def getChildren(self):
         return self.children
@@ -45,7 +42,7 @@ TOTALCHARS = 27
 
 class Trie:
     def __init__(self):
-        self.head = [None] * TOTALCHARS
+        self.head = {}
 
     def __repr__(self):
         return f"{self.head}"
@@ -53,15 +50,15 @@ class Trie:
     def addWord(self,word): 
         #Check if node exists in head
         char = word[0]
-        if self.head[pos(char)] == None:
-            self.head[pos(char)] = TrieNode(char,len(word) == 1) #Sets end of word to true if len word is a char
+        if char not in self.head:
+            self.head.update({char: TrieNode(char,len(word) == 1)}) #Sets end of word to true if len word is a char
 
 
         if len(word) == 1:
             return #already done added from above
         
         end = len(word) - 1
-        node = self.head[pos(char)]
+        node = self.head[char]
         for i in range(1, len(word)):
                 node = node.addChild(word[i], (i == end))
             
@@ -71,10 +68,9 @@ class Trie:
             return True
         
         word = word.lower()
-
-        node = self.head[pos(word[0])] #If Root node doesnt exist
-        if node == None:
-            return False
+        if  word[0] in self.head:
+            node = self.head[word[0]] #If Root node doesnt exist
+        else: return False
 
         if len(word) == 1:
             return word == node.getValue()
@@ -98,14 +94,12 @@ class Trie:
                 node,pathToNode = stack.pop()
                 if node.isEnd():
                     results.append(root.getValue() + "".join(map(TrieNode.getValue,pathToNode)))
-                for childNode in node.getChildren():
-                    if childNode != None:
+                for childNode in node.getChildren().values():
                         stack.append((childNode, pathToNode + [childNode]))
             
 
-        for head in self.head:
-            if head:
-                dfs(head)   
+        for node in self.head.values():
+            dfs(node)   
         return results
     
 
@@ -116,32 +110,29 @@ class Trie:
         results = []
         #print(prevRow)
 
-        for node in self.head: #Iterate through the head's children and runs a FuzzySearch on each one thats not None
-            if node: #check if node is not none
-                currentRow = leveinsteinDistance(intialRow,node.getValue(), word)
-                if min(currentRow) <= maxDistance: #Prunes branches if cost is higher than max allowed
-                    recursiveFuzzySearch(node,word,maxDistance,currentRow,node.getValue(),results)
+        for node in self.head.values(): #Iterate through the head's children and runs a FuzzySearch on each one thats not None
+            #print(node)
+            currentRow = leveinsteinDistance(intialRow,node.getValue(), word)
+            if min(currentRow) <= maxDistance: #Prunes branches if cost is higher than max allowed
+                recursiveFuzzySearch(node,word,maxDistance,currentRow,node.getValue(),results)
         return results
 
     def addFromFile(self, filename:str):
-        path = "..//corpus//dictionary//english//"+filename
-        f = open(normaliseFile(path),encoding='utf-8')
-        i = 0
-        for word in f:    
-            word = word[:-1]
-            i+=1
-            self.addWord(word)
-        print(f"Successfully added {i} Words") 
+        try:
+            path = "..//corpus//dictionary//english//"+filename
+            f = open(normaliseFile(path),encoding='utf-8')
+            i = 0
+            for word in f:    
+                word = word[:-1]
+                i+=1
+                self.addWord(word)
+            print(f"Successfully added {i} Words") 
+        except Exception as e:
+            print(e)
 
 
-def pos(char): #Helper function that returns the positon of the array any char should be placed in
-    #Special Character Support
-    if char == "'":
-        return 26
 
-    #Normal Characters
-    return ord(char.lower()) - 97
-
+#Realised i spelt it wrong but decided to keep lol
 def leveinsteinDistance(prevRow, trie_char, word): #Calculates the number of changes to change the current path to target word and then returns the minimum changes
     currentRow = [prevRow[0] + 1]
     for j in range(1, len(word) + 1):
@@ -149,6 +140,7 @@ def leveinsteinDistance(prevRow, trie_char, word): #Calculates the number of cha
         deletion = prevRow[j] + 1
         substitution = prevRow[j - 1] + (0 if trie_char == word[j - 1] else 1)
         currentRow.append(min(insertion, deletion, substitution))
+    #print(f"{trie_char} {currentRow}")
     return currentRow
 
 
@@ -156,12 +148,12 @@ def recursiveFuzzySearch(node: TrieNode, word: str, maxDistance: int, prevRow: l
     if node.isEnd() and prevRow[-1] <= maxDistance:
         results.append((prefix, prevRow[-1]))
     #
-    for child in node.getChildren():
-        if child:
-            char = child.getValue()
-            currRow = leveinsteinDistance(prevRow, char, word)
-            if min(currRow) <= maxDistance: #Prunes branches if cost is higher than max allowed
-                recursiveFuzzySearch(child, word, maxDistance, currRow, prefix + char, results)
+    for child in node.getChildren().values():
+        #print(child)
+        char = child.getValue()
+        currRow = leveinsteinDistance(prevRow, char, word)
+        if min(currRow) <= maxDistance: #Prunes branches if cost is higher than max allowed
+            recursiveFuzzySearch(child, word, maxDistance, currRow, prefix + char, results)
 
 
 
@@ -184,21 +176,15 @@ def test():
     tree = Trie()
 
     
-    #tree.addFromFile("en_GB-large.txt")
+    tree.addFromFile("en_GB-large.txt")
 
     #Test Fuzzy Search
-    tree.addWord("cab")
-    tree.addWord("cat")
-    tree.addWord("cart")
-    tree.addWord("cut")
-    tree.addWord("dog")
-    #tree.addWord("c")
-    #print(tree.findWord("noah"))
-    #print(tree.findWord("zippier"))
 
-    print(tree.displayTrie())
 
-    #print(tree.fuzzySearch("noha",1))
+    #print(tree.displayTrie())
+
+    print(tree.fuzzySearch("leveinstein",1)) 
+
 
 
 
