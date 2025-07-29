@@ -97,7 +97,12 @@ class MarkovChain(ABC):
 
     
     @abstractmethod
-    def predict(self,word,topN): #topN 0 to randomly choose from all, topN = 1 to always choose mostlikely, topN > 1: specify how many are in the pool to randomly choose
+    def predict(self,*args, **kwargs): #topN 0 to randomly choose from all, topN = 1 to always choose mostlikely, topN > 1: specify how many are in the pool to randomly choose
+        pass
+
+
+    @abstractmethod
+    def predictLen(self,*args, **kwargs):
         pass
 
 

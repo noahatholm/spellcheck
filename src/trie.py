@@ -49,6 +49,7 @@ class Trie:
 
     def addWord(self,word): 
         #Check if node exists in head
+        word = word.lower()
         char = word[0]
         if char not in self.head:
             self.head.update({char: TrieNode(char,len(word) == 1)}) #Sets end of word to true if len word is a char
@@ -69,15 +70,15 @@ class Trie:
         
         word = word.lower()
         if  word[0] in self.head:
-            node = self.head[word[0]] #If Root node doesnt exist
-        else: return False
+            node = self.head[word[0]] 
+        else: return False #If Root node doesnt exist
 
         if len(word) == 1:
             return word == node.getValue()
 
         i = 1
         end = len(word)
-        while i < end and node.getChild(word[i]) != None:
+        while i < end and word[i] in node.getChildren():
             node = node.getChild(word[i])
             i+=1
 
@@ -176,14 +177,17 @@ def test():
     tree = Trie()
 
     
-    tree.addFromFile("en_GB-large.txt")
+    #tree.addFromFile("en_GB-large.txt")
 
     #Test Fuzzy Search
 
+    tree.addWord("Joe")
+    print(tree)
+    print(tree.findWord("joeb"))
+    print(tree.displayTrie())
 
-    #print(tree.displayTrie())
+    #print(tree.fuzzySearch("leveinstein",1)) 
 
-    print(tree.fuzzySearch("leveinstein",1)) 
 
 
 
