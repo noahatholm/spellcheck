@@ -1,4 +1,4 @@
-from cleaning import normaliseFile
+from cleaning import normaliseFile, normaliseWord
 
 
 
@@ -8,9 +8,10 @@ class TrieNode:
         self.char = char.lower()
         self.children = {} #Changed from arrays to dictionaries to improve memory complexity
         self.endOfWord = endOfWord
+        self.frequency = 0
 
     def __repr__(self):
-        return f"({self.char},{self.endOfWord})"
+        return f"({self.char},{self.endOfWord},{self.frequency})"
     
     def addChild(self,char, endOfWord = False):
         if char not in self.children:
@@ -35,6 +36,12 @@ class TrieNode:
     
     def setEnd(self,end):
         self.endOfWord = end
+
+    def changeFrequency(self,amount):
+        self.frequency += amount
+    
+    def getFrequency(self):
+        return self.frequency
         
     
 TOTALCHARS = 27
@@ -63,18 +70,30 @@ class Trie:
         for i in range(1, len(word)):
                 node = node.addChild(word[i], (i == end))
             
-    
-    def findWord(self,word):
+    def getFrequency(self,word):
+        if (node:= self.findWord(word)):
+            return node.getFrequency()
+
+
+    def findAndIncrement(self,word, amount = 1):
+
+        if (node := self.findWord(word)):
+            node.changeFrequency(amount)
+            return node.getFrequency()
+        return False
+
+
+    def findWord(self,word): #Word found returns last Node else returns false
         if word == "":
             return True
         
-        word = word.lower()
+        word = normaliseWord(word.lower())
         if  word[0] in self.head:
             node = self.head[word[0]] 
         else: return False #If Root node doesnt exist
 
         if len(word) == 1:
-            return word == node.getValue()
+            return node if word == node.getValue() else False
 
         i = 1
         end = len(word)
@@ -82,7 +101,7 @@ class Trie:
             node = node.getChild(word[i])
             i+=1
 
-        return node.isEnd() and (i == (end))
+        return node if node.isEnd() and (i == (end)) else False 
     
 
     def displayTrie(self): #Performs Dfs on the trie to return a list of all the words in the trie
@@ -94,7 +113,9 @@ class Trie:
                 #print(stack)
                 node,pathToNode = stack.pop()
                 if node.isEnd():
-                    results.append(root.getValue() + "".join(map(TrieNode.getValue,pathToNode)))
+                    results.append((
+                        pathToNode[-1].getFrequency() if pathToNode else 0,
+                        root.getValue() + "".join(map(TrieNode.getValue, pathToNode)))) #Creates a list of tuples where (frquency,word)
                 for childNode in node.getChildren().values():
                         stack.append((childNode, pathToNode + [childNode]))
             
@@ -147,7 +168,7 @@ def leveinsteinDistance(prevRow, trie_char, word): #Calculates the number of cha
 
 def recursiveFuzzySearch(node: TrieNode, word: str, maxDistance: int, prevRow: list, prefix: str, results: list): #types provided for intellisense
     if node.isEnd() and prevRow[-1] <= maxDistance:
-        results.append((prefix, prevRow[-1]))
+        results.append((prefix, prevRow[-1],node.getFrequency()))
     #
     for child in node.getChildren().values():
         #print(child)
@@ -183,10 +204,11 @@ def test():
 
     tree.addWord("Joe")
     print(tree)
-    print(tree.findWord("joeb"))
+    print(tree.findWord("joe"))
+    print(tree.findAndIncrement("joe"))
     print(tree.displayTrie())
-
-    #print(tree.fuzzySearch("leveinstein",1)) 
+    
+    #print(tree.fuzzySearch("Levenshtein",1)) 
 
 
 

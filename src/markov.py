@@ -2,44 +2,37 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 import random
 import os
-import re
+
+import trie
+from cleaning import tokenise
 
 class MarkovChain(ABC):
     def __init__ (self):
         self.transitionMatrix = defaultdict(list)
 
+    def __repr__(self):
+        matrix = ""
+        for key in self.transitionMatrix:
+            matrix += (f"Key {key}: Value:{self.transitionMatrix[key]}\n")
+        return matrix
 
     def getMatrix(self):
         return self.transitionMatrix
     
-    #split sentences
-    # def tokenize(self,text): #OP regex for cleaning punctation and splits into sentences and arrays
-    #     sentences = text.lower().split('.')
-    #     print(sentences)
-    #     tokens = []
-    #     for sentence in sentences:
-    #         tokens.append(re.findall(r"\b\w+(?:['’-]\w+)*\b", sentence))
-    #     print(tokens)
-    #     return tokens #Returns an list of list full of tokens 
-        
-    #Keep sentences
-    def tokenize(self,text): #OP regex for cleaning punctation
-        tokens = []
-        tokens.append(re.findall(r"\b\w+(?:['’-]\w+)*\b", text.lower()))
-        return tokens #Returns an list of list full of tokens
 
-    def trainFromCorpus(self):
+
+    def trainFromCorpus(self, frequencyTrie: trie.Trie = None): 
         try:
             for file in os.listdir("..//corpus//text//"):
                 f = open("..//corpus//text//"+file,encoding='utf-8')
-                self.train(f.read())
+                self.train(f.read(),frequencyTrie)
         except Exception as e:
             print(e)
     
-    def trainFromCorpusSpecific(self,filename):
+    def trainFromCorpusSpecific(self,filename, frequencyTrie: trie.Trie = None):
         try:
             f = open("..//corpus//"+filename,encoding='utf-8')
-            self.train(f.read())
+            self.train(f.read(), frequencyTrie)
         except Exception as e:
             print(f"Error {e}") 
 
@@ -67,9 +60,11 @@ class MarkovChain(ABC):
 
     #Adds a new word to the transitionMatrix and decreases the probability of the other values
     #Can also accept multiple words for parameter word for higher order markov chains
-    def addWord(self, word, next):
+    def addWord(self, word, next, frequencyTrie: trie.Trie = None): #optional pass in a Trie which will then attemp to increment the frequency of the words in the trie if possible
         back = 0 #back window of sliding window approach used to keep the results in order to ensure faster fetch times
-        for i,values in enumerate(self.transitionMatrix[word]):
+        if frequencyTrie:
+                frequencyTrie.findAndIncrement(next)
+        for i,values in enumerate(self.transitionMatrix[word]): 
             if self.transitionMatrix[word][i][0] < self.transitionMatrix[word][back][0]:
                 back = i #Move window forward
             if values[1] == next:
@@ -79,12 +74,6 @@ class MarkovChain(ABC):
             
         self.transitionMatrix[word].append([1,next]) #If not already in array add it to end with default value of 1 
 
-    def getFrequency(self,word,limit = 1000): #Estimates frequency of words
-        words = self.transitionMatrix[word]
-        sum = 0
-        for i in range(min(len(words),limit)):
-            sum += words[i][0]
-        return sum
 
 
     @abstractmethod
@@ -92,7 +81,7 @@ class MarkovChain(ABC):
         pass
 
     @abstractmethod
-    def train(self,*args, **kwargs):
+    def train(self,text, frequencyTrie: trie.Trie = None): #optional pass in a Trie which will then attemp to increment the frequency of the words in the trie if possible
         pass     
 
     
@@ -106,15 +95,19 @@ class MarkovChain(ABC):
         pass
 
 
+    @abstractmethod
+    def predictTop(self,*args, **kwargs):
+        pass
+
 
 
 
 class N1MarkovChain(MarkovChain):
-    def train(self,text):
-        tokens = self.tokenize(text)
+    def train(self,text, frequencyTrie: trie.Trie = None):
+        tokens = tokenise(text)
         for sentence in tokens:    
             for i in range(len(sentence)-1):
-                self.addWord(sentence[i],sentence[i+1])
+                self.addWord(sentence[i],sentence[i+1],frequencyTrie)
 
 
     def randomPredict(self, word, topN):
@@ -141,13 +134,19 @@ class N1MarkovChain(MarkovChain):
             text+= " " + word
         return text
 
+    def predictTop(self, word, amount):
+        array = self.transitionMatrix[word.lower()]
+        if len(array) < amount:
+            return array
+        else:
+            return array[0:amount]
 
-class N2MarkovChain(MarkovChain):
-    def train(self,text):
-        tokens = self.tokenize(text)
+class N2MarkovChain(MarkovChain): #Appends words to the dictionary as a tuple of (word1,word2): word3
+    def train(self,text, frequencyTrie: trie.Trie = None):
+        tokens = tokenise(text)
         for sentence in tokens:
             for i in range(len(sentence)-2):
-                self.addWord((sentence[i],sentence[i+1]),sentence[i+2])
+                self.addWord((sentence[i],sentence[i+1]),sentence[i+2],frequencyTrie)
 
 
     def randomPredict(self, lastlastword,lastword, topN):
@@ -177,6 +176,12 @@ class N2MarkovChain(MarkovChain):
             text+= " " + word2
         return text
 
+    def predictTop(self, word1,word2, amount):
+        array = self.transitionMatrix[(word1.lower(),word2.lower())]
+        if len(array) < amount:
+            return array
+        else:
+            return array[0:amount]
 
     
 
@@ -196,7 +201,7 @@ def test():
     #M.displayMatrix()
     #M.checkorder()
     print(M.predictLen("The",1000,2))
-    print(M.getFrequency("cat"))
+
      
 
 
