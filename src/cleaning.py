@@ -72,14 +72,23 @@ def dropColumns(pathToFile, start, end):
     except Exception as e:
         print(f"Error: {e}")
 
-    
+def deleteRows(pathToFile, frequency):
+    try:
+        with open(pathToFile, 'r', encoding='utf-8') as fileIn:
+            with open(os.path.splitext(pathToFile)[0] + "Shortened.csv", "w", encoding='utf-8', newline='') as fileOut:
+                for i, line in enumerate(fileIn):
+                    if i % frequency == 0:
+                        fileOut.write(line)
+    except Exception as e:
+        print(e)
 
 def test():
     #print(normaliseWord("didn't"))
     #normaliseFile("..//corpus//dictionary//english//en_GB-large.txt")
     #tsvCsv("..//corpus//text//eng_sentences_detailed.tsv")
     #dropColumns("..//corpus//text//eng_sentences_detailed.csv",2,3)
-    normaliseFile("..//corpus//text//eng_sentences_detailedDropped.csv")
+    #normaliseFile("..//corpus//text//eng_sentences_detailedDropped.csv")
+    deleteRows("..//corpus//text//eng_sentences_detailedDroppedCleaned.txt",10)
 
 if __name__ == "__main__":
     test()
