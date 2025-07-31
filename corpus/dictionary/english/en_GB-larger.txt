@@ -1,4 +1,4 @@
-levenstein
+Levenshtein
 A
 A's
 AA

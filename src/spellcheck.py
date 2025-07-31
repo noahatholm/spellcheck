@@ -33,7 +33,7 @@ class spellcheck:
     def __buildTrie(self,language): #Trains trie 
         try:
             if language.lower() == "en" or "english":
-                file = "en_GB-large.txt"
+                file = "en_GB-larger.txt"
             self.trie.addFromFile(file)
         except Exception as e:
             print(e)
@@ -56,33 +56,47 @@ class spellcheck:
             return (sorted(suggestions,key=lambda x: x[1]))[:suggestionsCount]
         return True            
 
-    def __normaliseSuggestions(self,levenshtein): #Function normalises the two factors and combines them into one order list of the best suggestions
+    def __normaliseSuggestions(self,levenshtein,context): #Function normalises the three factors and combines them into one order list of the best suggestions
         results = []
         maxA = max(levenshtein,key =lambda x :x[1] )[1]
         minA = min(levenshtein,key =lambda x :x[1])[1]
         maxB = max(levenshtein,key=lambda x:x[2])[2] #yeezy yeezy
         weight = 0.7 #Weight given to factor A
+        contextWeight = 1.5 #Weight Given to suggestions if they appear in the context suggestions
+        commonSuggestions = set(row[0] for row in levenshtein) & set(row[1] for row in context) #Suggestions that are common to both sets
+
         for entry in levenshtein:
     
             word = entry[0]
             a = entry[1]
             b = entry[2]
-            aNorm = 1 - ((a - minA) / (maxA - minA)) #Inverted and normalised
+            difA = 1 if (maxA - minA) == 0 else (maxA - minA)
+            aNorm = 1 - ((a - minA) / (difA)) #Inverted and normalised
             bNorm = 0 if b == 0 else (math.log(b) / math.log(maxB)) #Log'd and normalised
             combined = weight * aNorm + (1 - weight) * bNorm #Combine values and multiply by weights
+
+            if word in commonSuggestions:
+                combined = min(combined * contextWeight, 1.0)
+
+            
+
             results.append((word,combined))
         return sorted(results,key=lambda x:x[1],reverse = True)
         
 
-    def smartSuggestions(self,word,suggestionsCount = 5):
-        finalSuggestions = [] #an order compilation of all the best suggestions based on 3 factors 
-        levenshteinSuggestions = self.getSuggestions(word,50)
+    def smartSuggestions(self,word,suggestionsCount = 5,lastword = None): #give a tuple for lastword if using higher order markov chains
+        finalSuggestions = [] #an order compilation of all the best suggestions based on 3 factors
+        contextPredictions = [] 
+        levenshteinSuggestions = self.getSuggestions(word,suggestionsCount)
         if levenshteinSuggestions == True: return True
-        contextPredictions = self.markovChain.predictTop(word,20)
+        if lastword:
+            contextPredictions = self.markovChain.predictTop(lastword,30)
+            #print(contextPredictions)
+
         #print(levenshteinSuggestions)
 
-        normal = self.__normaliseSuggestions(levenshteinSuggestions) #best suggestions comprised of levenshtein distance & word frequency
-        return normal
+        finalSuggestions = self.__normaliseSuggestions(levenshteinSuggestions,contextPredictions) #best suggestions comprised of levenshtein distance & word frequency
+        return finalSuggestions
 
     def saveMarkovChain(self): #Saves markov chain to pickle file
         try:
@@ -112,6 +126,20 @@ class spellcheck:
         except Exception as e:
             raise(e)
 
+    def addWord(self,word,next): #Adds word to markov tree to make it selflearning #Remember to save trie and markov regularly
+        try:
+            self.markovChain.addWord(word,next,self.trie)
+        except Exception as e:
+            raise e
+    
+    def addWordToDict(self,word):
+        try:
+            self.trie.addWord(word)
+        except Exception as e:
+            raise e
+
+
+
     
 
 def test():
@@ -121,7 +149,7 @@ def test():
     #s.loadMarkovChain()
     #print(sorted(s.getTrie().displayTrie()))
     #print(s.getMarkov())
-    print(s.smartSuggestions("levenstinn",25))
+    print(s.smartSuggestions("catr",5,"black"))
 
 
 if __name__ == "__main__":
