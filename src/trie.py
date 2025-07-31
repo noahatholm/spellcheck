@@ -124,21 +124,6 @@ class Trie:
             dfs(node)   
         return results
     
-
-
-    def fuzzySearch(self,word, maxDistance):
-        #distance row
-        intialRow = list(range(len(word)+1))
-        results = []
-        #print(prevRow)
-
-        for node in self.head.values(): #Iterate through the head's children and runs a FuzzySearch on each one thats not None
-            #print(node)
-            currentRow = leveinsteinDistance(intialRow,node.getValue(), word)
-            if min(currentRow) <= maxDistance: #Prunes branches if cost is higher than max allowed
-                recursiveFuzzySearch(node,word,maxDistance,currentRow,node.getValue(),results)
-        return results
-
     def addFromFile(self, filename:str):
         try:
             path = "..//corpus//dictionary//english//"+filename
@@ -152,28 +137,51 @@ class Trie:
         except Exception as e:
             print(e)
 
+    def fuzzySearch(self,word, maxDistance):
+        #distance row
+        intialRow = list(range(len(word)+1))
+        results = []
+        #print(prevRow)
+
+        for node in self.head.values(): #Iterate through the head's children and runs a FuzzySearch on each one thats not None
+            #print(node)
+            currentRow = leveinsteinDistance(intialRow, node.getValue(), word, "", "")  # empty prefix & prev_char at root
+            if min(currentRow) <= maxDistance: #Prunes branches if cost is higher than max allowed
+                recursiveFuzzySearch(node,word,maxDistance,currentRow,node.getValue(),results)
+        return results
 
 
+
+
+#Created a custom leveninstein distance to track for swapped characters too
 #Realised i spelt it wrong but decided to keep lol
-def leveinsteinDistance(prevRow, trie_char, word): #Calculates the number of changes to change the current path to target word and then returns the minimum changes
+def leveinsteinDistance(prevRow, char, word, currentPath, prevChar):
     currentRow = [prevRow[0] + 1]
     for j in range(1, len(word) + 1):
         insertion = currentRow[j - 1] + 1
         deletion = prevRow[j] + 1
-        substitution = prevRow[j - 1] + (0 if trie_char == word[j - 1] else 1)
-        currentRow.append(min(insertion, deletion, substitution))
-    #print(f"{trie_char} {currentRow}")
+        substitution = prevRow[j - 1] + (0 if char == word[j - 1] else 1)
+
+        swapping = float('inf') #if no swap is possible
+        if (prevChar and j > 1 and
+            prevChar == word[j - 1] and
+            char == word[j - 2]):
+            swapping = prevRow[j - 2] 
+
+        currentRow.append(min(insertion, deletion, substitution, swapping))
+
+    #print(f"{''.join(currentPath + [trie_char])} {currentRow}")
     return currentRow
 
 
 def recursiveFuzzySearch(node: TrieNode, word: str, maxDistance: int, prevRow: list, prefix: str, results: list): #types provided for intellisense
     if node.isEnd() and prevRow[-1] <= maxDistance:
         results.append((prefix, prevRow[-1],node.getFrequency()))
-    #
+    #Iterate through child branches and start a search down them
     for child in node.getChildren().values():
         #print(child)
         char = child.getValue()
-        currRow = leveinsteinDistance(prevRow, char, word)
+        currRow = leveinsteinDistance(prevRow, char, word, prefix, prefix[-1])  # use last char as prev_trie_char
         if min(currRow) <= maxDistance: #Prunes branches if cost is higher than max allowed
             recursiveFuzzySearch(child, word, maxDistance, currRow, prefix + char, results)
 
@@ -204,9 +212,13 @@ def test():
 
     tree.addWord("Joe")
     print(tree)
-    print(tree.findWord("joe"))
-    print(tree.findAndIncrement("joe"))
-    print(tree.displayTrie())
+    tree.addWord("Cat")
+    tree.addWord("Cart")
+    tree.addWord("Carrr")
+    print(tree.fuzzySearch("catr",2))
+    #print(tree.findWord("joe"))
+    #print(tree.findAndIncrement("joe"))
+    #print(tree.displayTrie())
     
     #print(tree.fuzzySearch("Levenshtein",1)) 
 
