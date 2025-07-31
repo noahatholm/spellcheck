@@ -2,7 +2,7 @@ import markov
 import trie
 import cleaning
 import math
-
+import pickle
 
 class spellcheck:
     def __init__(self,markov = markov.N1MarkovChain(),language = "english"):
@@ -10,7 +10,16 @@ class spellcheck:
         self.trie = trie.Trie()
         self.lang = language
 
-        self.__buildTrie(self.lang)
+        try:
+            self.loadMarkovChain()
+            self.loadTrie()
+            print("Successfully Loaded Trie and Markov Chain")
+        except Exception as e:
+            print(f"Error: Creating new Trie and Markov Chain \n{e}")
+            self.__buildTrie(self.lang)
+            self.buildMarkovChain()
+            self.saveMarkovChain()
+            self.saveTrie()
 
     def getMarkov(self):
         return self.markovChain
@@ -40,7 +49,8 @@ class spellcheck:
         if not self.checkspelling(word):
             suggestions = []
             i = 1
-            while len(suggestions) < suggestionsCount:
+            while len(suggestions) < suggestionsCount and i < 20: #20 is exit value to prevent infinite loop
+                #print(suggestions)
                 suggestions = (self.trie.fuzzySearch(word,i))
                 i+=1
             return (sorted(suggestions,key=lambda x: x[1]))[:suggestionsCount]
@@ -57,7 +67,6 @@ class spellcheck:
             word = entry[0]
             a = entry[1]
             b = entry[2]
-            print(b)
             aNorm = 1 - ((a - minA) / (maxA - minA)) #Inverted and normalised
             bNorm = 0 if b == 0 else (math.log(b) / math.log(maxB)) #Log'd and normalised
             combined = weight * aNorm + (1 - weight) * bNorm #Combine values and multiply by weights
@@ -68,22 +77,52 @@ class spellcheck:
     def smartSuggestions(self,word,suggestionsCount = 5):
         finalSuggestions = [] #an order compilation of all the best suggestions based on 3 factors 
         levenshteinSuggestions = self.getSuggestions(word,50)
+        if levenshteinSuggestions == True: return True
         contextPredictions = self.markovChain.predictTop(word,20)
         #print(levenshteinSuggestions)
 
         normal = self.__normaliseSuggestions(levenshteinSuggestions) #best suggestions comprised of levenshtein distance & word frequency
+        return normal
 
-        print(normal)
+    def saveMarkovChain(self): #Saves markov chain to pickle file
+        try:
+            with open('..//data//markov.pickle', 'wb') as f:
+                pickle.dump(self.markovChain,f)
+        except Exception as e:
+            raise(e)
 
+    def saveTrie(self):
+        try:
+            with open('..//data//trie.pickle', 'wb') as f:
+                pickle.dump(self.trie,f)
+        except Exception as e:
+            raise(e)
+
+    def loadMarkovChain(self):
+        try:
+            with open('..//data//markov.pickle', 'rb') as f:
+                self.markovChain = pickle.load(f)
+        except Exception as e:
+            raise(e)
+
+    def loadTrie(self):
+        try:
+            with open('..//data//trie.pickle', 'rb') as f:
+                self.trie = pickle.load(f)
+        except Exception as e:
+            raise(e)
 
     
 
 def test():
     s = spellcheck()
-    s.buildMarkovChain()
+    #s.buildMarkovChain()
+    #s.saveMarkovChain()
+    #s.loadMarkovChain()
     #print(sorted(s.getTrie().displayTrie()))
-    
-    print(s.smartSuggestions("catr",50))
+    #print(s.getMarkov())
+    print(s.smartSuggestions("levenstinn",25))
+
 
 if __name__ == "__main__":
     test()

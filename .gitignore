@@ -1,1 +1,3 @@
 src/__pycache__/
+*.pkl
+corpus/dictionary/english/en_GB-large.txt
