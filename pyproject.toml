@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spellcheck.py"
+version = "1.0.0"
+description = "Python Spell Check & Auto Complete using higher order markov chains"
+authors = [{ name = "noahatholm"}]
+readme = "README.md"
+requires-python = ">=3.7"
+dependencies = []
+
+[tool.setuptools]
+packages = ["spellcheck"]
+
+
+[tool.setuptools.package-data]
+"spellcheck" = ["corpus/**/*", "data/**/*"]

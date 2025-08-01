@@ -1,10 +1,12 @@
+import os
+
 import markov
 import trie
 import cleaning
 import math
 import pickle
 
-class spellcheck:
+class spellchecker:
     def __init__(self,markov = markov.N1MarkovChain(),language = "english"):
         self.markovChain = markov
         self.trie = trie.Trie()
@@ -100,28 +102,36 @@ class spellcheck:
 
     def saveMarkovChain(self): #Saves markov chain to pickle file
         try:
-            with open('..//data//markov.pickle', 'wb') as f:
+            baseDir = os.path.dirname(os.path.abspath(__file__))
+            path = os.path.join(baseDir,"data","markov.pickle")    
+            with open(path, 'wb') as f:
                 pickle.dump(self.markovChain,f)
         except Exception as e:
             raise(e)
 
     def saveTrie(self):
         try:
-            with open('..//data//trie.pickle', 'wb') as f:
+            baseDir = os.path.dirname(os.path.abspath(__file__))
+            path = os.path.join(baseDir,"data","trie.pickle")   
+            with open(path, 'wb') as f:
                 pickle.dump(self.trie,f)
         except Exception as e:
             raise(e)
 
     def loadMarkovChain(self):
         try:
-            with open('..//data//markov.pickle', 'rb') as f:
+            baseDir = os.path.dirname(os.path.abspath(__file__))
+            path = os.path.join(baseDir,"data","markov.pickle")   
+            with open(path, 'rb') as f:
                 self.markovChain = pickle.load(f)
         except Exception as e:
             raise(e)
 
     def loadTrie(self):
         try:
-            with open('..//data//trie.pickle', 'rb') as f:
+            baseDir = os.path.dirname(os.path.abspath(__file__))
+            path = os.path.join(baseDir,"data","trie.pickle")   
+            with open(path, 'rb') as f:
                 self.trie = pickle.load(f)
         except Exception as e:
             raise(e)
@@ -143,13 +153,13 @@ class spellcheck:
     
 
 def test():
-    s = spellcheck()
+    s = spellchecker()
     #s.buildMarkovChain()
     #s.saveMarkovChain()
     #s.loadMarkovChain()
     #print(sorted(s.getTrie().displayTrie()))
     #print(s.getMarkov())
-    print(s.smartSuggestions("catr",5,"black"))
+    print(s.smartSuggestions("hardon",25,"large"))
 
 
 if __name__ == "__main__":

@@ -1,3 +1,5 @@
+import os
+
 from cleaning import normaliseFile, normaliseWord
 
 
@@ -126,14 +128,16 @@ class Trie:
     
     def addFromFile(self, filename:str):
         try:
-            path = "..//corpus//dictionary//english//"+filename
-            f = open(normaliseFile(path),encoding='utf-8')
-            i = 0
-            for word in f:    
-                word = word[:-1]
-                i+=1
-                self.addWord(word)
-            print(f"Successfully added {i} Words") 
+            baseDir = os.path.dirname(os.path.abspath(__file__))
+            path = os.path.join(baseDir, "corpus", "dictionary", "english",filename)
+
+            with open(path, encoding='utf-8') as f:
+                i = 0
+                for word in f:    
+                    word = word[:-1]
+                    i+=1
+                    self.addWord(word)
+                print(f"Successfully added {i} Words") 
         except Exception as e:
             print(e)
 
@@ -206,7 +210,7 @@ def test():
     tree = Trie()
 
     
-    #tree.addFromFile("en_GB-large.txt")
+    tree.addFromFile("en_GB-larger.txt")
 
     #Test Fuzzy Search
 

@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 import random
 import os
+import importlib.resources as package
 
 import trie
 from cleaning import tokenise
@@ -23,16 +24,20 @@ class MarkovChain(ABC):
 
     def trainFromCorpus(self, frequencyTrie: trie.Trie = None): 
         try:
-            for file in os.listdir("..//corpus//text//"):
-                f = open("..//corpus//text//"+file,encoding='utf-8')
-                self.train(f.read(),frequencyTrie)
+            baseDir = os.path.dirname(os.path.abspath(__file__))
+            path = os.path.join(baseDir,"corpus","text")
+            for file in os.listdir(path):
+                with open(os.path.join(path,file), encoding='utf-8') as f:
+                    self.train(f.read(), frequencyTrie)
         except Exception as e:
             print(e)
     
     def trainFromCorpusSpecific(self,filename, frequencyTrie: trie.Trie = None):
         try:
-            f = open("..//corpus//"+filename,encoding='utf-8')
-            self.train(f.read(), frequencyTrie)
+            baseDir = os.path.dirname(os.path.abspath(__file__))
+            path = os.path.join(baseDir,"corpus","text")
+            with open(os.path.join(path,filename), encoding='utf-8') as f:
+                self.train(f.read(), frequencyTrie)
         except Exception as e:
             print(f"Error {e}") 
 

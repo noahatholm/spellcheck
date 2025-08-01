@@ -1,0 +1,3 @@
+include README.md
+recursive-include spellcheck/corpus *
+recursive-include spellcheck/data *

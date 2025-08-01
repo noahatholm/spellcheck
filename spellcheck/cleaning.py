@@ -15,7 +15,9 @@ def normaliseWord(word): #Normalise Words to not use diacritics e.g "Asunción" 
 
 
 def normaliseFile(pathToFile):
-    try:    
+    try:
+        baseDir = os.path.dirname(os.path.abspath(__file__))
+        pathToFile = os.join(baseDir,pathToFile)    
         file = open(pathToFile,encoding='utf-8')
         newFile = open(os.path.splitext(pathToFile)[0] + "Cleaned.txt", "w", encoding='utf-8')
         for line in file:
@@ -46,6 +48,8 @@ def tokenise(text): #OP regex for cleaning punctation
 #Cleaning the massive csv i downloaded
 def tsvCsv(pathToFile):
     try:
+        baseDir = os.path.dirname(os.path.abspath(__file__))
+        pathToFile = os.join(baseDir,pathToFile)    
         with open(pathToFile, 'r', encoding='utf-8') as tsv:
             with open(os.path.splitext(pathToFile)[0] + ".csv", "w", encoding='utf-8', newline='') as fileOut:
                 for line in tsv:
@@ -59,7 +63,8 @@ def dropColumns(pathToFile, start, end):
     try:
         # Set a large but safe field size limit
         csv.field_size_limit(min(sys.maxsize, 2**31 - 1))
-
+        baseDir = os.path.dirname(os.path.abspath(__file__))
+        pathToFile = os.join(baseDir,pathToFile)    
         with open(pathToFile, 'r', encoding='utf-8') as fileIn:
             with open(os.path.splitext(pathToFile)[0] + "Dropped.csv", "w", encoding='utf-8', newline='') as fileOut:
                 reader = csv.reader(fileIn)
@@ -74,6 +79,8 @@ def dropColumns(pathToFile, start, end):
 
 def deleteRows(pathToFile, frequency):
     try:
+        baseDir = os.path.dirname(os.path.abspath(__file__))
+        pathToFile = os.join(baseDir,pathToFile)    
         with open(pathToFile, 'r', encoding='utf-8') as fileIn:
             with open(os.path.splitext(pathToFile)[0] + "Shortened.csv", "w", encoding='utf-8', newline='') as fileOut:
                 for i, line in enumerate(fileIn):
@@ -84,11 +91,11 @@ def deleteRows(pathToFile, frequency):
 
 def test():
     #print(normaliseWord("didn't"))
-    #normaliseFile("..//corpus//dictionary//english//en_GB-large.txt")
-    #tsvCsv("..//corpus//text//eng_sentences_detailed.tsv")
-    #dropColumns("..//corpus//text//eng_sentences_detailed.csv",2,3)
-    #normaliseFile("..//corpus//text//eng_sentences_detailedDropped.csv")
-    deleteRows("..//corpus//text//eng_sentences_detailedDroppedCleaned.txt",10)
+    #normaliseFile("corpus//dictionary//english//en_GB-large.txt")
+    #tsvCsv("corpus//text//eng_sentences_detailed.tsv")
+    #dropColumns("corpus//text//eng_sentences_detailed.csv",2,3)
+    #normaliseFile("corpus//text//eng_sentences_detailedDropped.csv")
+    deleteRows("corpus//text//eng_sentences_detailedDroppedCleaned.txt",10)
 
 if __name__ == "__main__":
     test()

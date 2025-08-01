@@ -1,7 +1,8 @@
 # spellcheck
 Python Spell Check &amp; Auto Complete using higher order markov chains
 
-
+## Installation 
+`pip install git+https://github.com/noahatholm/spellcheck`
 
 ## Corpus
 Theres two types of corpus that the project is trained on.
