@@ -3,6 +3,7 @@ Python Spell Check &amp; Auto Complete using higher order markov chains
 
 ## Installation 
 `pip install git+https://github.com/noahatholm/spellcheck`
+
 `from spellcheck.spellcheck import spellchecker`
 
 ## Corpus
