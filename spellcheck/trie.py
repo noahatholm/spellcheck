@@ -1,6 +1,6 @@
 import os
 
-from cleaning import normaliseFile, normaliseWord
+from .cleaning import normaliseFile, normaliseWord
 
 
 

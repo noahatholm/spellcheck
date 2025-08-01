@@ -4,8 +4,8 @@ import random
 import os
 import importlib.resources as package
 
-import trie
-from cleaning import tokenise
+from . import trie
+from .cleaning import tokenise
 
 class MarkovChain(ABC):
     def __init__ (self):

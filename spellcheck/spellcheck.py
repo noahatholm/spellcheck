@@ -2,15 +2,11 @@ import os
 import math
 import pickle
 
-try:
-    from . import markov
-    from . import trie
-    from . import cleaning
-except ImportError:
-    # This block runs when you execute the file as a script.
-    import markov
-    import trie
-    import cleaning
+from . import markov
+from . import trie
+from . import cleaning
+
+
 
 class spellchecker:
     def __init__(self,markov = markov.N1MarkovChain(),language = "english"):
