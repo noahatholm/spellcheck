@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "spellcheck.py"
-version = "1.0.0"
+version = "1.0.1"
 description = "Python Spell Check & Auto Complete using higher order markov chains"
 authors = [{ name = "noahatholm"}]
 readme = "README.md"

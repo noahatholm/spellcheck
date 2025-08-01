@@ -1,4 +1,4 @@
-src/__pycache__/
+spellcheck/__pycache__/
 *.pkl
 corpus/dictionary/english/en_GB-large.txt
 spellcheck.py.egg-info
