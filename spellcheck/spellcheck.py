@@ -65,6 +65,7 @@ class spellchecker:
         maxA = max(levenshtein,key =lambda x :x[1] )[1]
         minA = min(levenshtein,key =lambda x :x[1])[1]
         maxB = max(levenshtein,key=lambda x:x[2])[2] #yeezy yeezy
+        maxB = 2 if maxB == 1 else maxB
         weight = 0.7 #Weight given to factor A
         contextWeight = 1.5 #Weight Given to suggestions if they appear in the context suggestions
         commonSuggestions = set(row[0] for row in levenshtein) & set(row[1] for row in context) #Suggestions that are common to both sets
@@ -75,6 +76,7 @@ class spellchecker:
             a = entry[1]
             b = entry[2]
             difA = 1 if (maxA - minA) == 0 else (maxA - minA)
+        
             aNorm = 1 - ((a - minA) / (difA)) #Inverted and normalised
             bNorm = 0 if b == 0 else (math.log(b) / math.log(maxB)) #Log'd and normalised
             combined = weight * aNorm + (1 - weight) * bNorm #Combine values and multiply by weights
