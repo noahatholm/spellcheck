@@ -80,7 +80,7 @@ class spellchecker:
             combined = weight * aNorm + (1 - weight) * bNorm #Combine values and multiply by weights
 
             if word in commonSuggestions:
-                combined = min(combined * contextWeight, 1.0)
+                combined = min(combined * contextWeight, 1.1)
 
             
 
