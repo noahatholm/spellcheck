@@ -19,30 +19,6 @@ from spellcheck.spellcheck import spellchecker
 s = spellchecker()
 
 ```
-
-
-## Corpus
-
-The system is trained on two types of text:
-
-- **Text (Full Sentences)** – Used to build the Markov chain  
-- **Dictionary Corpus (Word List)** – Used to populate the trie for spellchecking, organized by language
-
-### Default Corpus
-
-#### Text Corpus
-
-- Based on 1.9 million English sentences from [Tatoeba](https://tatoeba.org/en/downloads)  
-- Trimmed down to 190,000 sentences for improved performance and reduced memory usage
-
-#### Dictionary
-
-- Includes approximately 170,000 British English words, including names, places, and alternative spellings  
-- Sourced from [this repository](https://sourceforge.net/projects/wordlist/files/speller/2020.12.07/)  
-- The dataset includes both ise and ize spellings, as both are valid in British English
-
-
-
 ## Features
 
 I also created a simple word processor in Tkinter to better demonstrate the spellchecker than just using a CLI.
@@ -64,3 +40,28 @@ I also created a simple word processor in Tkinter to better demonstrate the spel
 
 - The model can be updated dynamically with each word typed to improve personalisation  
 - If you enable this, it’s recommended to remove the default text corpus otherwise learning process would take alot longer #Note the trie uses the text data to gather frequency data so suggestions could be less accurate until its learnt of enough text
+
+
+![Context Suggestions](https://i.imgur.com/bDEaBVp.gif)
+
+![Example](https://i.imgur.com/JwfQVGN.gif)
+
+## Corpus
+
+The system is trained on two types of text:
+
+- **Text (Full Sentences)** – Used to build the Markov chain  
+- **Dictionary Corpus (Word List)** – Used to populate the trie for spellchecking, organized by language
+
+### Default Corpus
+
+#### Text Corpus
+
+- Based on 1.9 million English sentences from [Tatoeba](https://tatoeba.org/en/downloads)  
+- Trimmed down to 190,000 sentences for improved performance and reduced memory usage
+
+#### Dictionary
+
+- Includes approximately 170,000 British English words, including names, places, and alternative spellings  
+- Sourced from [this repository](https://sourceforge.net/projects/wordlist/files/speller/2020.12.07/)  
+- The dataset includes both ise and ize spellings, as both are valid in British English
