@@ -41,9 +41,10 @@ I also created a simple word processor in Tkinter to better demonstrate the spel
 - The model can be updated dynamically with each word typed to improve personalisation  
 - If you enable this, it’s recommended to remove the default text corpus otherwise learning process would take alot longer #Note the trie uses the text data to gather frequency data so suggestions could be less accurate until its learnt of enough text
 
-
+Example of different suggestions based on the previous context
 ![Context Suggestions](https://i.imgur.com/bDEaBVp.gif)
 
+Spellchecking
 ![Example](https://i.imgur.com/JwfQVGN.gif)
 
 ## Corpus
